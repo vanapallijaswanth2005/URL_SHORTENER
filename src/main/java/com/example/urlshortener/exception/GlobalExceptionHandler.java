@@ -23,6 +23,11 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(Map.of("error", ex.getMessage()), HttpStatus.CONFLICT); // 409 Conflict
     }
 
+    @ExceptionHandler(UrlExpiredException.class)
+    public ResponseEntity<Map<String, String>> handleUrlExpired(UrlExpiredException ex) {
+        return new ResponseEntity<>(Map.of("error", ex.getMessage()), HttpStatus.GONE); // 410 Gone
+    }
+
     // Handles validation errors triggered by @Valid (e.g., bad URL format)
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, String>> handleValidationExceptions(MethodArgumentNotValidException ex) {

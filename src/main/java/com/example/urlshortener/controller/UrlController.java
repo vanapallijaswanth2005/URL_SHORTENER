@@ -30,7 +30,7 @@ public class UrlController {
             HttpServletRequest httpRequest) {
         
         // 1. Delegate business logic to the service
-        ShortUrl shortUrl = urlService.shortenUrl(request.getOriginalUrl(), request.getCustomAlias());
+        ShortUrl shortUrl = urlService.shortenUrl(request.getOriginalUrl(), request.getCustomAlias(), request.getExpirationHours());
         
         // 2. Construct the full short URL dynamically based on the current server host
         String baseUrl = httpRequest.getRequestURL().toString().replace(httpRequest.getRequestURI(), "");

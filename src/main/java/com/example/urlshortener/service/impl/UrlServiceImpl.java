@@ -1,6 +1,7 @@
 package com.example.urlshortener.service.impl;
 
 import com.example.urlshortener.exception.AliasAlreadyTakenException;
+import com.example.urlshortener.exception.UrlExpiredException;
 import com.example.urlshortener.exception.UrlNotFoundException;
 import com.example.urlshortener.model.ShortUrl;
 import com.example.urlshortener.repository.UrlRepository;
@@ -9,6 +10,8 @@ import com.example.urlshortener.util.ShortCodeGenerator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
@@ -19,13 +22,13 @@ public class UrlServiceImpl implements UrlService {
 
     @Override
     @Transactional
-    public ShortUrl shortenUrl(String originalUrl, String customAlias) {
+    public ShortUrl shortenUrl(String originalUrl, String customAlias, Integer expirationHours) {
         // 1. Handle Custom Alias
         if (customAlias != null && !customAlias.isBlank()) {
             if (urlRepository.existsByShortCode(customAlias)) {
                 throw new AliasAlreadyTakenException("The alias '" + customAlias + "' is already in use.");
             }
-            return saveUrl(originalUrl, customAlias);
+            return saveUrl(originalUrl, customAlias, expirationHours);
         }
 
         // 2. Handle Random Generation
@@ -43,15 +46,20 @@ public class UrlServiceImpl implements UrlService {
             // a 7-character string that is already in the database.
         } while (urlRepository.existsByShortCode(generatedCode));
 
-        return saveUrl(originalUrl, generatedCode);
+        return saveUrl(originalUrl, generatedCode, expirationHours);
     }
 
-    private ShortUrl saveUrl(String originalUrl, String shortCode) {
+    private ShortUrl saveUrl(String originalUrl, String shortCode, Integer expirationHours) {
         ShortUrl shortUrl = ShortUrl.builder()
                 .originalUrl(originalUrl)
                 .shortCode(shortCode)
                 .active(true)
                 .build();
+                
+        if (expirationHours != null && expirationHours > 0) {
+            shortUrl.setExpiresAt(LocalDateTime.now().plusHours(expirationHours));
+        }
+        
         return urlRepository.save(shortUrl);
     }
 
@@ -65,6 +73,11 @@ public class UrlServiceImpl implements UrlService {
         // Soft delete check
         if (!shortUrl.isActive()) {
             throw new UrlNotFoundException("Short URL '" + shortCode + "' is inactive.");
+        }
+        
+        // Expiration check
+        if (shortUrl.getExpiresAt() != null && shortUrl.getExpiresAt().isBefore(LocalDateTime.now())) {
+            throw new UrlExpiredException("This short URL has expired.");
         }
         
         // Click tracking: increment the counter

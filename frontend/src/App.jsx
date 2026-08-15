@@ -3,6 +3,7 @@ import { useState } from 'react'
 function App() {
   const [originalUrl, setOriginalUrl] = useState('')
   const [customAlias, setCustomAlias] = useState('')
+  const [expirationHours, setExpirationHours] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [result, setResult] = useState(null)
   const [error, setError] = useState(null)
@@ -21,7 +22,11 @@ function App() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ originalUrl, customAlias }),
+        body: JSON.stringify({ 
+          originalUrl, 
+          customAlias,
+          expirationHours: expirationHours ? parseInt(expirationHours, 10) : null 
+        }),
       });
 
       let data;
@@ -32,8 +37,11 @@ function App() {
       }
 
       if (!response.ok) {
-        if (data.error) throw new Error(data.error); // Handled backend errors
-        if (data.originalUrl) throw new Error(data.originalUrl); // Validation error
+        if (response.status === 429) {
+          throw new Error('Too many requests. Please slow down and try again in a minute.');
+        }
+        if (data && data.error) throw new Error(data.error); // Handled backend errors
+        if (data && data.originalUrl) throw new Error(data.originalUrl); // Validation error
         throw new Error('Failed to shorten URL');
       }
 
@@ -79,6 +87,16 @@ function App() {
             pattern="[a-zA-Z0-9-]+"
             title="Only letters, numbers, and hyphens are allowed for custom aliases."
           />
+          <select 
+            className="input-field"
+            value={expirationHours}
+            onChange={(e) => setExpirationHours(e.target.value)}
+          >
+            <option value="">Never Expires</option>
+            <option value="1">Expires in 1 Hour</option>
+            <option value="24">Expires in 24 Hours</option>
+            <option value="168">Expires in 7 Days</option>
+          </select>
         </div>
         
         <button type="submit" className="btn-primary" disabled={isLoading || !originalUrl}>

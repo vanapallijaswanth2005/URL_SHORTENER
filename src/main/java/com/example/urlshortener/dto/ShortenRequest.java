@@ -13,4 +13,7 @@ public class ShortenRequest {
 
     // Optional custom alias requested by the user
     private String customAlias;
+
+    // Optional expiration time in hours
+    private Integer expirationHours;
 }
