@@ -28,6 +28,16 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(Map.of("error", ex.getMessage()), HttpStatus.GONE); // 410 Gone
     }
 
+    @ExceptionHandler(PasswordRequiredException.class)
+    public ResponseEntity<Map<String, String>> handlePasswordRequired(PasswordRequiredException ex) {
+        return new ResponseEntity<>(Map.of("error", ex.getMessage()), HttpStatus.UNAUTHORIZED); // 401
+    }
+
+    @ExceptionHandler(InvalidPasswordException.class)
+    public ResponseEntity<Map<String, String>> handleInvalidPassword(InvalidPasswordException ex) {
+        return new ResponseEntity<>(Map.of("error", ex.getMessage()), HttpStatus.UNAUTHORIZED); // 401
+    }
+
     // Handles validation errors triggered by @Valid (e.g., bad URL format)
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, String>> handleValidationExceptions(MethodArgumentNotValidException ex) {

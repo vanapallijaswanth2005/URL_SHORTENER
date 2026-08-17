@@ -16,4 +16,7 @@ public class ShortenRequest {
 
     // Optional expiration time in hours
     private Integer expirationHours;
+
+    // Optional password to protect the link
+    private String password;
 }

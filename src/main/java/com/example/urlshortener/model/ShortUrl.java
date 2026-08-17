@@ -41,6 +41,15 @@ public class ShortUrl {
     @Column(name = "is_active", nullable = false)
     private boolean active = true;
 
+    // Optional user who created the link (null if anonymous)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    private User user;
+
+    // Optional password protection
+    @Column(name = "password")
+    private String password;
+
     // This lifecycle callback automatically sets the creation time right before
     // saving to the DB.
     @PrePersist
